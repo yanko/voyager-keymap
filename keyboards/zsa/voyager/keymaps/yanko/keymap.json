@@ -1,0 +1,9 @@
+{
+    "modules": [
+        "zsa/oryx",
+        "zsa/mousejiggler",
+        "zsa/navigator_trackball",
+        "zsa/automouse",
+        "zsa/defaults"
+    ]
+}
