@@ -103,13 +103,24 @@ EOF
 cd ~/qmk_firmware
 
 # With secrets via .env.sh (recommended)
-source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && make zsa/voyager:yanko
+source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && USER_NAME=ypetrovic make zsa/voyager:yanko
 
 # With secrets inline
-SECRET_1='your_secret_1' SECRET_2='your_secret_2' make zsa/voyager:yanko
+SECRET_1='your_secret_1' SECRET_2='your_secret_2' USER_NAME=ypetrovic make zsa/voyager:yanko
 
 # Without secrets (ST_MACRO_2 and ST_MACRO_3 will send empty strings)
-make zsa/voyager:yanko
+USER_NAME=ypetrovic make zsa/voyager:yanko
+```
+
+> Use `&&` (or just run one command per line). Do **not** use `&` between `source` and `make`, or the env script runs in the background and variables are not available to the build.
+>
+> Do **not** run `sudo make`/`sudo qmk flash`. That can create root-owned files in `.build` and cause permission errors on later builds.
+
+If you already ran `sudo make` before and now see permission errors, fix ownership once:
+
+```bash
+cd ~/qmk_firmware
+sudo chown -R "$(whoami)" .build
 ```
 
 > Always use single quotes around secrets — bash misinterprets `!`, `@`, `$` inside double quotes.
@@ -135,7 +146,13 @@ dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D ~/qmk_firmware/zsa_voyager_yan
 **Build + flash in one step:**
 ```bash
 cd ~/qmk_firmware
-source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && qmk flash -kb zsa/voyager -km yanko
+source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && USER_NAME=ypetrovic qmk flash -kb zsa/voyager -km yanko
+```
+
+If your local `qmk_firmware` copy does not see the keymap folder directly, link it once:
+
+```bash
+ln -sfn ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko ~/qmk_firmware/keyboards/zsa/voyager/keymaps/yanko
 ```
 
 ---
