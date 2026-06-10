@@ -26,6 +26,7 @@ This keymap lives as a standalone repo, separate from the QMK framework folder.
 
 ```
 voyager-keymap/
+├── qmk.json           <- QMK userspace manifest (required by QMK CLI)
 └── keyboards/
     └── zsa/
         └── voyager/
