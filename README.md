@@ -95,6 +95,7 @@ qmk config user.overlay_dir
 cat > ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh << 'EOF'
 export SECRET_1='your_secret_1'
 export SECRET_2='your_secret_2'
+export SECRET_3='your_secret_3'
 EOF
 ```
 
@@ -103,15 +104,34 @@ EOF
 ```bash
 cd ~/qmk_firmware
 
-# With secrets via .env.sh (recommended)
+# Option A (recommended): QMK CLI + overlay_dir
+# Works with qmk config user.overlay_dir and does not require keymap symlink
+source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && USER_NAME=ypetrovic qmk compile -kb zsa/voyager -km yanko -e "SECRET_1=$SECRET_1" -e "SECRET_2=$SECRET_2" -e "SECRET_3=$SECRET_3"
+
+# Option B: raw make
+# Requires the keymap folder to exist inside ~/qmk_firmware/keyboards/...
+ln -sfn ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko ~/qmk_firmware/keyboards/zsa/voyager/keymaps/yanko
 source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && USER_NAME=ypetrovic make zsa/voyager:yanko
-
-# With secrets inline
-SECRET_1='your_secret_1' SECRET_2='your_secret_2' USER_NAME=ypetrovic make zsa/voyager:yanko
-
-# Without secrets (ST_MACRO_2 and ST_MACRO_3 will send empty strings)
-USER_NAME=ypetrovic make zsa/voyager:yanko
 ```
+
+If raw `make zsa/voyager:yanko` prints `Could not find keymap` / `Invalid keymap`, it means `make` is not resolving your overlay keymap path. Use Option A (`qmk compile`) or create the symlink for Option B.
+
+Alternative with inline secrets:
+
+```bash
+cd ~/qmk_firmware
+
+# Option A inline
+SECRET_1='your_secret_1' SECRET_2='your_secret_2' SECRET_3='your_secret_3' USER_NAME=ypetrovic qmk compile -kb zsa/voyager -km yanko -e "SECRET_1=your_secret_1" -e "SECRET_2=your_secret_2" -e "SECRET_3=your_secret_3"
+
+# Option B inline
+SECRET_1='your_secret_1' SECRET_2='your_secret_2' SECRET_3='your_secret_3' USER_NAME=ypetrovic make zsa/voyager:yanko
+
+# Without secrets (ST_MACRO_2 / ST_MACRO_3 / ST_MACRO_4 will send empty strings)
+USER_NAME=ypetrovic qmk compile -kb zsa/voyager -km yanko
+```
+
+> For QMK CLI (`qmk compile` / `qmk flash`), pass secrets with `-e` as shown above. Sourcing `.env.sh` alone is not always enough.
 
 > Use `&&` (or just run one command per line). Do **not** use `&` between `source` and `make`, or the env script runs in the background and variables are not available to the build.
 >
@@ -128,26 +148,26 @@ sudo chown -R "$(whoami)" .build
 
 Output `.bin`:
 ```
-~/qmk_firmware/zsa_voyager_yanko.bin
+~/qmk_firmware/.build/zsa_voyager_yanko.bin
 ```
 
 #### 7. Flash
 
 **Keymapp (GUI):**
 1. Open Keymapp → Flash
-2. Browse to `~/qmk_firmware/zsa_voyager_yanko.bin`
+2. Browse to `~/qmk_firmware/.build/zsa_voyager_yanko.bin`
 3. Press reset button on top edge of keyboard (near the `3` key)
 
 **dfu-util CLI:**
 ```bash
 # Put keyboard in reset mode first, then:
-dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D ~/qmk_firmware/zsa_voyager_yanko.bin
+dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D ~/qmk_firmware/.build/zsa_voyager_yanko.bin
 ```
 
 **Build + flash in one step:**
 ```bash
 cd ~/qmk_firmware
-source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && USER_NAME=ypetrovic qmk flash -kb zsa/voyager -km yanko
+source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && USER_NAME=ypetrovic qmk flash -kb zsa/voyager -km yanko -e "SECRET_1=$SECRET_1" -e "SECRET_2=$SECRET_2" -e "SECRET_3=$SECRET_3"
 ```
 
 If your local `qmk_firmware` copy does not see the keymap folder directly, link it once:
@@ -201,6 +221,7 @@ qmk config user.overlay_dir
 cat > ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh << 'EOF'
 export SECRET_1='your_secret_1'
 export SECRET_2='your_secret_2'
+export SECRET_3='your_secret_3'
 EOF
 ```
 
@@ -209,45 +230,63 @@ EOF
 ```bash
 cd ~/qmk_firmware
 
-# With secrets via .env.sh (recommended)
+# Option A (recommended): QMK CLI + overlay_dir
+source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && qmk compile -kb zsa/voyager -km yanko -e "SECRET_1=$SECRET_1" -e "SECRET_2=$SECRET_2" -e "SECRET_3=$SECRET_3"
+
+# Option B: raw make
+# Requires the keymap folder to exist inside ~/qmk_firmware/keyboards/...
+ln -sfn ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko ~/qmk_firmware/keyboards/zsa/voyager/keymaps/yanko
 source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && make zsa/voyager:yanko
-
-# With secrets inline
-SECRET_1='your_secret_1' SECRET_2='your_secret_2' make zsa/voyager:yanko
-
-# Without secrets (ST_MACRO_2 and ST_MACRO_3 will send empty strings)
-make zsa/voyager:yanko
 ```
+
+If raw `make zsa/voyager:yanko` prints `Could not find keymap` / `Invalid keymap`, it means `make` is not resolving your overlay keymap path. Use Option A (`qmk compile`) or create the symlink for Option B.
+
+Alternative with inline secrets:
+
+```bash
+cd ~/qmk_firmware
+
+# Option A inline
+SECRET_1='your_secret_1' SECRET_2='your_secret_2' SECRET_3='your_secret_3' qmk compile -kb zsa/voyager -km yanko -e "SECRET_1=your_secret_1" -e "SECRET_2=your_secret_2" -e "SECRET_3=your_secret_3"
+
+# Option B inline
+SECRET_1='your_secret_1' SECRET_2='your_secret_2' SECRET_3='your_secret_3' make zsa/voyager:yanko
+
+# Without secrets (ST_MACRO_2 / ST_MACRO_3 / ST_MACRO_4 will send empty strings)
+qmk compile -kb zsa/voyager -km yanko
+```
+
+> For QMK CLI (`qmk compile` / `qmk flash`), pass secrets with `-e` as shown above. Sourcing `.env.sh` alone is not always enough.
 
 > Always use single quotes around secrets — bash misinterprets `!`, `@`, `$` inside double quotes.
 
 Output `.bin`:
 ```
-~/qmk_firmware/zsa_voyager_yanko.bin
+~/qmk_firmware/.build/zsa_voyager_yanko.bin
 ```
 
 Access from Windows Explorer or Keymapp:
 ```
-\\wsl$\Ubuntu\home\yanko\qmk_firmware\zsa_voyager_yanko.bin
+\\wsl$\Ubuntu\home\yanko\qmk_firmware\.build\zsa_voyager_yanko.bin
 ```
 
 #### 6. Flash
 
 **Keymapp (GUI — recommended for WSL):**
 1. Open Keymapp on Windows → Flash
-2. Navigate to `\\wsl$\Ubuntu\home\yanko\qmk_firmware\zsa_voyager_yanko.bin`
+2. Navigate to `\\wsl$\Ubuntu\home\yanko\qmk_firmware\.build\zsa_voyager_yanko.bin`
 3. Press reset button on top edge of keyboard (near the `3` key)
 
 **dfu-util CLI in WSL:**
 ```bash
 # Requires usbipd-win to attach USB device to WSL — Keymapp is easier
-dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D ~/qmk_firmware/zsa_voyager_yanko.bin
+dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D ~/qmk_firmware/.build/zsa_voyager_yanko.bin
 ```
 
 **Build + flash in one step:**
 ```bash
 cd ~/qmk_firmware
-source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && qmk flash -kb zsa/voyager -km yanko
+source ~/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh && qmk flash -kb zsa/voyager -km yanko -e "SECRET_1=$SECRET_1" -e "SECRET_2=$SECRET_2" -e "SECRET_3=$SECRET_3"
 ```
 
 ---
@@ -288,6 +327,7 @@ qmk config user.overlay_dir
 cat > C:/Users/yanko/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh << 'EOF'
 export SECRET_1='your_secret_1'
 export SECRET_2='your_secret_2'
+export SECRET_3='your_secret_3'
 EOF
 ```
 
@@ -296,12 +336,12 @@ EOF
 ```bash
 # With secrets via .env.sh (recommended)
 source C:/Users/yanko/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh
-qmk compile -kb zsa/voyager -km yanko
+qmk compile -kb zsa/voyager -km yanko -e "SECRET_1=$SECRET_1" -e "SECRET_2=$SECRET_2" -e "SECRET_3=$SECRET_3"
 
 # With secrets inline (single command)
-SECRET_1='your_secret_1' SECRET_2='your_secret_2' qmk compile -kb zsa/voyager -km yanko
+SECRET_1='your_secret_1' SECRET_2='your_secret_2' SECRET_3='your_secret_3' qmk compile -kb zsa/voyager -km yanko -e "SECRET_1=your_secret_1" -e "SECRET_2=your_secret_2" -e "SECRET_3=your_secret_3"
 
-# Without secrets (ST_MACRO_2 and ST_MACRO_3 will send empty strings)
+# Without secrets (ST_MACRO_2 / ST_MACRO_3 / ST_MACRO_4 will send empty strings)
 qmk compile -kb zsa/voyager -km yanko
 ```
 
@@ -309,26 +349,26 @@ qmk compile -kb zsa/voyager -km yanko
 
 Output `.bin`:
 ```
-C:/Users/yanko/qmk_firmware/zsa_voyager_yanko.bin
+C:/Users/yanko/qmk_firmware/.build/zsa_voyager_yanko.bin
 ```
 
 #### 5. Flash
 
 **Keymapp (GUI — recommended):**
 1. Open Keymapp → Flash
-2. Browse to `C:/Users/yanko/qmk_firmware/zsa_voyager_yanko.bin`
+2. Browse to `C:/Users/yanko/qmk_firmware/.build/zsa_voyager_yanko.bin`
 3. Press reset button on top edge of keyboard (near the `3` key)
 
 **dfu-util CLI:**
 ```bash
 # Put keyboard in reset mode first, then:
-dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D C:/Users/yanko/qmk_firmware/zsa_voyager_yanko.bin
+dfu-util -d 3297:1969 -a 0 -s 0x08000000:leave -D C:/Users/yanko/qmk_firmware/.build/zsa_voyager_yanko.bin
 ```
 
 **Build + flash in one step:**
 ```bash
 source C:/Users/yanko/voyager-keymap/keyboards/zsa/voyager/keymaps/yanko/.env.sh
-qmk flash -kb zsa/voyager -km yanko
+qmk flash -kb zsa/voyager -km yanko -e "SECRET_1=$SECRET_1" -e "SECRET_2=$SECRET_2" -e "SECRET_3=$SECRET_3"
 ```
 
 ---
@@ -339,10 +379,10 @@ After building, confirm the strings actually made it in before flashing:
 
 ```bash
 # macOS / WSL
-strings ~/qmk_firmware/zsa_voyager_yanko.bin | grep "your_secret"
+strings ~/qmk_firmware/.build/zsa_voyager_yanko.bin | grep "your_secret"
 
 # Windows MSYS
-strings C:/Users/yanko/qmk_firmware/zsa_voyager_yanko.bin | grep "your_secret"
+strings C:/Users/yanko/qmk_firmware/.build/zsa_voyager_yanko.bin | grep "your_secret"
 ```
 
 If nothing is returned the env vars did not reach the compiler — check that `rules.mk` has the `OPT_DEFS` lines (see Secret macros section below).
@@ -357,6 +397,7 @@ Strings are injected at compile time via environment variables and never stored 
 ```makefile
 OPT_DEFS += -DSECRET_1="\"$(SECRET_1)\""
 OPT_DEFS += -DSECRET_2="\"$(SECRET_2)\""
+OPT_DEFS += -DSECRET_3="\"$(SECRET_3)\""
 ```
 
 `keymap.c` uses them:
@@ -367,12 +408,16 @@ case ST_MACRO_2:
 case ST_MACRO_3:
     if (record->event.pressed) { SEND_STRING(SECRET_2); }
     break;
+case ST_MACRO_4:
+    if (record->event.pressed) { SEND_STRING(SECRET_3); }
+    break;
 ```
 
 `.env.sh` holds the values locally (gitignored):
 ```bash
 export SECRET_1='your_secret_1'
 export SECRET_2='your_secret_2'
+export SECRET_3='your_secret_3'
 ```
 
 > Firmware strings are readable by anyone with physical keyboard access via a hex editor.
